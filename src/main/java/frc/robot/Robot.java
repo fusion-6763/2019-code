@@ -49,6 +49,8 @@ public class Robot extends TimedRobot {
         m_chooser.addOption("My Auto", kCustomAuto);
         SmartDashboard.putData("Auto choices", m_chooser);
         navx.reset();
+        timer.stop();
+        timer.reset();
     }
 
     /**
@@ -82,7 +84,6 @@ public class Robot extends TimedRobot {
         m_autoSelected = m_chooser.getSelected();
         // autoSelected = SmartDashboard.getString("Auto Selector",
         // defaultAuto);
-        timer.reset();
         timer.start();
         System.out.println("Auto selected: " + m_autoSelected);
     }
@@ -106,6 +107,8 @@ public class Robot extends TimedRobot {
             } else if (timer.get() < 4) {
                 // supposed to go backward
                 mecanumDrive.drivePolar(0.8, 180, 0);
+            } else {
+                mecanumDrive.stopMotor();
             }
             break;
         case kDefaultAuto:
