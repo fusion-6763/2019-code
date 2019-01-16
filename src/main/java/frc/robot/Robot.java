@@ -142,12 +142,30 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopPeriodic() {
         if (driveSelected.equals(MECANUM_DRIVE)) {
-            mecanumDrive.driveCartesian(controller.getY(Hand.kLeft), controller.getX(Hand.kLeft), 0, 0);
+
+            // To use polar drive, uncomment this line and comment out the driveCartesian line.
+            mecanumDrive.drivePolar(getJoystickMagnitude(), getJoystickAngle(Hand.kLeft), getJoystickAngle(Hand.kRight));
+
+            // To use cartesian drive, uncomment this line and comment out the drivePolar line.
+            //mecanumDrive.driveCartesian(-controller.getY(Hand.kLeft), controller.getX(Hand.kLeft), getJoystickAngle(Hand.kRight));
         }
         else {
-            tankDrive.arcadeDrive(controller.getY(Hand.kLeft), controller.getX(Hand.kLeft));
+            tankDrive.tankDrive(-controller.getY(Hand.kLeft), controller.getY(Hand.kRight));
         }
 
+    }
+
+    private double getJoystickMagnitude() {
+        double absoluteY = Math.abs(controller.getY(Hand.kLeft));
+        double absoluteX = Math.abs(controller.getX(Hand.kLeft));
+        
+        return Math.sqrt(Math.pow(absoluteY, 2) + Math.pow(absoluteX, 2));
+    } 
+
+    private double getJoystickAngle(final Hand hand) {
+
+        // This assumes the angle is from the postive side of the X axis.
+        return Math.atan2(-controller.getY(hand), controller.getX(hand));
     }
 
     /**
