@@ -142,10 +142,10 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopPeriodic() {
         if (driveSelected.equals(MECANUM_DRIVE)) {
-            mecanumDrive.driveCartesian(controller.getY(), controller.getX(), 0, 0);
+            mecanumDrive.driveCartesian(controller.getY(Hand.kLeft), controller.getX(Hand.kLeft), 0, 0);
         }
         else {
-            tankDrive.arcadeDrive(controller.getY(), controller.getX());
+            tankDrive.arcadeDrive(controller.getY(Hand.kLeft), controller.getX(Hand.kLeft));
         }
 
     }
