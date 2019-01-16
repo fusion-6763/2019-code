@@ -9,7 +9,6 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -148,11 +147,9 @@ public class Robot extends TimedRobot {
 
             // To use cartesian drive, uncomment this line and comment out the drivePolar line.
             //mecanumDrive.driveCartesian(-controller.getY(Hand.kLeft), controller.getX(Hand.kLeft), getJoystickAngle(Hand.kRight));
-        }
-        else {
+        } else {
             tankDrive.tankDrive(-controller.getY(Hand.kLeft), controller.getY(Hand.kRight));
         }
-
     }
 
     private double getJoystickMagnitude() {
