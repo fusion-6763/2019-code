@@ -12,8 +12,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
+
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
 
@@ -25,11 +29,11 @@ import edu.wpi.first.wpilibj.SPI;
  * project.
  */
 public class Robot extends TimedRobot {
-    private static final String kDefaultAuto = "Default";
-    private static final String kCustomAuto = "My Auto";
-    private String m_autoSelected = kCustomAuto;
+    private static final String TANK_DRIVE = "Tank Drive";
+    private static final String MECANUM_DRIVE = "Mecanum Drive";
+    private String driveSelected;
     private final SendableChooser<String> m_chooser = new SendableChooser<>();
-    private Joystick controller = new Joystick(1);
+    private XboxController controller = new XboxController(1);
     private Talon frontLeftMotor = new Talon(0);
     private Talon frontRightMotor = new Talon(1);
     private Talon rearRightMotor = new Talon(2);
@@ -38,6 +42,7 @@ public class Robot extends TimedRobot {
             rearRightMotor);
     private Timer timer = new Timer();
     private AHRS navx = new AHRS(SPI.Port.kMXP);
+    private DifferentialDrive tankDrive = new DifferentialDrive(frontLeftMotor, frontRightMotor);
 
     /**
      * This function is run when the robot is first started up and should be used
@@ -45,9 +50,10 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
-        m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
-        m_chooser.addOption("My Auto", kCustomAuto);
-        SmartDashboard.putData("Auto choices", m_chooser);
+        m_chooser.setDefaultOption("Mecanum Drive", MECANUM_DRIVE);
+        m_chooser.addOption("Tank Drive", TANK_DRIVE);
+        SmartDashboard.putData("Drive choices", m_chooser);
+
         navx.reset();
         timer.stop();
         timer.reset();
@@ -81,11 +87,9 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousInit() {
-        m_autoSelected = m_chooser.getSelected();
-        // autoSelected = SmartDashboard.getString("Auto Selector",
-        // defaultAuto);
+        driveSelected = m_chooser.getSelected();
         timer.start();
-        System.out.println("Auto selected: " + m_autoSelected);
+        System.out.println("Auto selected: " + driveSelected);
     }
 
     /**
@@ -93,25 +97,29 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousPeriodic() {
-        switch (m_autoSelected) {
-        case kCustomAuto:
+        switch (driveSelected) {
+        case MECANUM_DRIVE:
             if (timer.get() < 1) {
                 // its suposed to go forward
                 mecanumDrive.drivePolar(0.8, 0, 0);
-            } else if (timer.get() < 2) {
+            } 
+            else if (timer.get() < 2) {
                 // its suposed to go left
                 mecanumDrive.drivePolar(0.8, -90, 0);
-            } else if (timer.get() < 3) {
+            } 
+            else if (timer.get() < 3) {
                 // its supposed to go right
                 mecanumDrive.drivePolar(0.8, 90, 0);
-            } else if (timer.get() < 4) {
+            } 
+            else if (timer.get() < 4) {
                 // supposed to go backward
                 mecanumDrive.drivePolar(0.8, 180, 0);
-            } else {
+            } 
+            else {
                 mecanumDrive.stopMotor();
             }
             break;
-        case kDefaultAuto:
+        case TANK_DRIVE:
         default:
             // Put default auto code here
             break;
@@ -119,11 +127,27 @@ public class Robot extends TimedRobot {
     }
 
     /**
+     * This function is called at the start of the operator control period.
+     */
+    @Override
+    public void teleopInit() {
+        super.teleopInit();
+
+        driveSelected = m_chooser.getSelected();
+    }
+
+    /**
      * This function is called periodically during operator control.
      */
     @Override
     public void teleopPeriodic() {
-        mecanumDrive.driveCartesian(controller.getY(), controller.getX(), 0, 0);
+        if (driveSelected.equals(MECANUM_DRIVE)) {
+            mecanumDrive.driveCartesian(controller.getY(), controller.getX(), 0, 0);
+        }
+        else {
+            tankDrive.arcadeDrive(controller.getY(), controller.getX());
+        }
+
     }
 
     /**
