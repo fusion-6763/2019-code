@@ -12,7 +12,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.drive.MecanumDrive;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
@@ -28,20 +27,13 @@ import edu.wpi.first.wpilibj.SPI;
  * project.
  */
 public class Robot extends TimedRobot {
-    private static final String TANK_DRIVE = "Tank Drive";
-    private static final String MECANUM_DRIVE = "Mecanum Drive";
-    private String driveSelected;
-    private final SendableChooser<String> m_chooser = new SendableChooser<>();
+    //private final SendableChooser<String> m_chooser = new SendableChooser<>();
     private XboxController controller = new XboxController(1);
-    private Talon frontLeftMotor = new Talon(0);
-    private Talon frontRightMotor = new Talon(1);
-    private Talon rearRightMotor = new Talon(2);
-    private Talon rearLeftMotor = new Talon(3);
-    private MecanumDrive mecanumDrive = new MecanumDrive(frontLeftMotor, rearLeftMotor, frontRightMotor,
-            rearRightMotor);
+    private Talon leftMotor = new Talon(0);
+    private Talon rightMotor = new Talon(1);
     private Timer timer = new Timer();
     private AHRS navx = new AHRS(SPI.Port.kMXP);
-    private DifferentialDrive tankDrive = new DifferentialDrive(frontLeftMotor, frontRightMotor);
+    private DifferentialDrive tankDrive = new DifferentialDrive(leftMotor, rightMotor);
 
     /**
      * This function is run when the robot is first started up and should be used
@@ -49,9 +41,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
-        m_chooser.setDefaultOption("Mecanum Drive", MECANUM_DRIVE);
-        m_chooser.addOption("Tank Drive", TANK_DRIVE);
-        SmartDashboard.putData("Drive choices", m_chooser);
+       // SmartDashboard.putData("Drive choices", m_chooser);
 
         navx.reset();
         timer.stop();
@@ -86,9 +76,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousInit() {
-        driveSelected = m_chooser.getSelected();
-        timer.start();
-        System.out.println("Auto selected: " + driveSelected);
+         timer.start();
     }
 
     /**
@@ -96,33 +84,6 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousPeriodic() {
-        switch (driveSelected) {
-        case MECANUM_DRIVE:
-            if (timer.get() < 1) {
-                // its suposed to go forward
-                mecanumDrive.drivePolar(0.8, 0, 0);
-            } 
-            else if (timer.get() < 2) {
-                // its suposed to go left
-                mecanumDrive.drivePolar(0.8, -90, 0);
-            } 
-            else if (timer.get() < 3) {
-                // its supposed to go right
-                mecanumDrive.drivePolar(0.8, 90, 0);
-            } 
-            else if (timer.get() < 4) {
-                // supposed to go backward
-                mecanumDrive.drivePolar(0.8, 180, 0);
-            } 
-            else {
-                mecanumDrive.stopMotor();
-            }
-            break;
-        case TANK_DRIVE:
-        default:
-            // Put default auto code here
-            break;
-        }
     }
 
     /**
@@ -131,8 +92,6 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         super.teleopInit();
-
-        driveSelected = m_chooser.getSelected();
     }
 
     /**
@@ -140,16 +99,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void teleopPeriodic() {
-        if (driveSelected.equals(MECANUM_DRIVE)) {
-
-            // To use polar drive, uncomment this line and comment out the driveCartesian line.
-            mecanumDrive.drivePolar(getJoystickMagnitude(), getJoystickAngle(Hand.kLeft), getJoystickAngle(Hand.kRight));
-
-            // To use cartesian drive, uncomment this line and comment out the drivePolar line.
-            //mecanumDrive.driveCartesian(-controller.getY(Hand.kLeft), controller.getX(Hand.kLeft), getJoystickAngle(Hand.kRight));
-        } else {
-            tankDrive.tankDrive(-controller.getY(Hand.kLeft), controller.getY(Hand.kRight));
-        }
+        tankDrive.tankDrive(-controller.getY(Hand.kLeft), controller.getY(Hand.kRight));
     }
 
     private double getJoystickMagnitude() {
@@ -160,7 +110,6 @@ public class Robot extends TimedRobot {
     } 
 
     private double getJoystickAngle(final Hand hand) {
-
         // This assumes the angle is from the postive side of the X axis.
         return Math.atan2(-controller.getY(hand), controller.getX(hand));
     }
