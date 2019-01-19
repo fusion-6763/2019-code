@@ -7,8 +7,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -84,6 +82,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousPeriodic() {
+        tankDrive.tankDrive(-controller.getY(Hand.kLeft), controller.getY(Hand.kRight));
     }
 
     /**
@@ -92,6 +91,7 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopInit() {
         super.teleopInit();
+        timer.start();
     }
 
     /**
