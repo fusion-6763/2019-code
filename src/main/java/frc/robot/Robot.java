@@ -7,15 +7,16 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.TimedRobot;
+
+import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.cameraserver.*;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -26,12 +27,11 @@ import edu.wpi.first.wpilibj.SPI;
  */
 public class Robot extends TimedRobot {
     //private final SendableChooser<String> m_chooser = new SendableChooser<>();
-    private XboxController controller = new XboxController(1);
-    private Talon leftMotor = new Talon(0);
-    private Talon rightMotor = new Talon(1);
-    private Timer timer = new Timer();
-    private AHRS navx = new AHRS(SPI.Port.kMXP);
-    private DifferentialDrive tankDrive = new DifferentialDrive(leftMotor, rightMotor);
+    Joystick controller = new Joystick(0);
+    AHRS navx = new AHRS(SPI.Port.kMXP);
+    DifferentialDrive myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
+
+    Elevator elevator = new Elevator(7, 8);
 
     /**
      * This function is run when the robot is first started up and should be used
@@ -39,11 +39,9 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotInit() {
-       // SmartDashboard.putData("Drive choices", m_chooser);
-
+        // SmartDashboard.putData("Drive choices", m_chooser);
         navx.reset();
-        timer.stop();
-        timer.reset();
+        CameraServer.getInstance().startAutomaticCapture();
     }
 
     /**
@@ -74,7 +72,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousInit() {
-         timer.start();
+
     }
 
     /**
@@ -82,7 +80,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousPeriodic() {
-        tankDrive.tankDrive(-controller.getY(Hand.kLeft), controller.getY(Hand.kRight));
+        myRobot.arcadeDrive(-controller.getY(), controller.getX());
     }
 
     /**
@@ -90,8 +88,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void teleopInit() {
-        super.teleopInit();
-        timer.start();
+
     }
 
     /**
@@ -99,19 +96,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void teleopPeriodic() {
-        tankDrive.tankDrive(-controller.getY(Hand.kLeft), controller.getY(Hand.kRight));
-    }
-
-    private double getJoystickMagnitude() {
-        double absoluteY = Math.abs(controller.getY(Hand.kLeft));
-        double absoluteX = Math.abs(controller.getX(Hand.kLeft));
-        
-        return Math.sqrt(Math.pow(absoluteY, 2) + Math.pow(absoluteX, 2));
-    } 
-
-    private double getJoystickAngle(final Hand hand) {
-        // This assumes the angle is from the postive side of the X axis.
-        return Math.atan2(-controller.getY(hand), controller.getX(hand));
+        myRobot.arcadeDrive(-controller.getY(), controller.getX());
     }
 
     /**
