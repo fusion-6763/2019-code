@@ -18,6 +18,9 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.cameraserver.*;
 
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DigitalInput;
+
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to each mode, as described in the IterativeRobot
@@ -32,6 +35,9 @@ public class Robot extends TimedRobot {
     DifferentialDrive myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
 
     Elevator elevator = new Elevator(7, 8);
+
+    AnalogInput pixyAnalog = new AnalogInput(3);
+    DigitalInput pixyDigital = new DigitalInput(0);
 
     /**
      * This function is run when the robot is first started up and should be used
@@ -55,7 +61,7 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotPeriodic() {
-        System.out.println("gyro angle = " + navx.getAngle() );
+        //System.out.println("Gyro Angle: " + navx.getAngle());
     }
 
     /**
@@ -74,13 +80,36 @@ public class Robot extends TimedRobot {
     public void autonomousInit() {
 
     }
-
+    double value;
+    double finalXSpeed;
     /**
      * This function is called periodically during autonomous.
      */
     @Override
     public void autonomousPeriodic() {
-        myRobot.arcadeDrive(-controller.getY(), controller.getX());
+        value = pixyAnalog.getVoltage() * 30.30;
+    
+        double difference = value - 50;
+        double cookie = difference / 50;
+        double pineapple = cookie * 0.6;
+
+        if(pineapple < 0){
+            finalXSpeed = pineapple - 0.4;
+        }
+        else if(pineapple > 0){
+            finalXSpeed = pineapple + 0.4;
+        }
+        if(controller.getRawButton(1)){
+            if(pixyDigital.get()){
+                myRobot.arcadeDrive(-controller.getY(), -finalXSpeed);
+            }
+            else{
+                myRobot.tankDrive(0.0, 0.0);
+            }
+        }
+        else{
+            myRobot.arcadeDrive(-controller.getY(), controller.getX());
+        }
     }
 
     /**
@@ -96,7 +125,29 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void teleopPeriodic() {
-        myRobot.arcadeDrive(-controller.getY(), controller.getX());
+        value = pixyAnalog.getVoltage() * 30.30;
+    
+        double difference = value - 50;
+        double cookie = difference / 50;
+        double pineapple = cookie * 0.6;
+
+        if(pineapple < 0){
+            finalXSpeed = pineapple - 0.4;
+        }
+        else if(pineapple > 0){
+            finalXSpeed = pineapple + 0.4;
+        }
+        if(controller.getRawButton(1)){
+            if(pixyDigital.get()){
+                myRobot.arcadeDrive(-controller.getY(), -finalXSpeed);
+            }
+            else{
+                myRobot.tankDrive(0.0, 0.0);
+            }
+        }
+        else{
+            myRobot.arcadeDrive(-controller.getY(), controller.getX());
+        }
     }
 
     /**
