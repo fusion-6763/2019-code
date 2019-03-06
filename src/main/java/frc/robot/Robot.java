@@ -162,7 +162,7 @@ public class Robot extends TimedRobot {
         }
 
         //Elevator motors: More code in the Elevator.java file
-        double leverage = 0.1; //Reminder: getY values range from -1 to 1
+        //double leverage = 0.1; //Reminder: getY values range from -1 to 1
         /*if (vroom.getY() < 0 - leverage ) {
             elevator.moveUp();
         }
