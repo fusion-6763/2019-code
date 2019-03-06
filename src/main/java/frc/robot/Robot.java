@@ -158,12 +158,12 @@ public class Robot extends TimedRobot {
             //Intake
         }
         else {
-            //stop motor?
+            //stop motor!
         }
 
         //Elevator motors: More code in the Elevator.java file
         double leverage = 0.1; //Reminder: getY values range from -1 to 1
-        if (vroom.getY() < 0 - leverage ) {
+        /*if (vroom.getY() < 0 - leverage ) {
             elevator.moveUp();
         }
         else if (vroom.getY() > 0 + leverage) {
@@ -171,7 +171,8 @@ public class Robot extends TimedRobot {
         }
         else {
             elevator.stop();
-        }
+        }*/
+        elevator.set(vroom.getY());
 
         //Toggle the hatch-grabber piston
         boolean hatchToggle = false;
@@ -180,6 +181,9 @@ public class Robot extends TimedRobot {
         }
         if (hatchToggle) {
             //Extendo hatcho!
+        }
+        else{
+            //unextendo hatcho y cookieso y vacas!
         }
 
     }
