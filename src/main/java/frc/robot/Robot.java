@@ -12,7 +12,6 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
@@ -31,6 +30,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 public class Robot extends TimedRobot {
     //private final SendableChooser<String> m_chooser = new SendableChooser<>();
     Joystick controller = new Joystick(0);
+    Joystick vroom = new Joystick(1);
     AHRS navx = new AHRS(SPI.Port.kMXP);
     DifferentialDrive myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
 
@@ -148,6 +148,40 @@ public class Robot extends TimedRobot {
         else{
             myRobot.arcadeDrive(-controller.getY(), controller.getX());
         }
+
+
+        //Outtake and intake motors
+        if (vroom.getRawButton(1)) {
+            //Outtake
+        }
+        else if (vroom.getRawButton(2)) {
+            //Intake
+        }
+        else {
+            //stop motor?
+        }
+
+        //Elevator motors: More code in the Elevator.java file
+        double leverage = 0.1; //Reminder: getY values range from -1 to 1
+        if (vroom.getY() < 0 - leverage ) {
+            elevator.moveUp();
+        }
+        else if (vroom.getY() > 0 + leverage) {
+            elevator.moveDown();
+        }
+        else {
+            elevator.stop();
+        }
+
+        //Toggle the hatch-grabber piston
+        boolean hatchToggle = false;
+        if (vroom.getRawButtonPressed(3) || vroom.getRawButtonPressed(4)){
+            hatchToggle = !hatchToggle;
+        }
+        if (hatchToggle) {
+            //Extendo hatcho!
+        }
+
     }
 
     /**
