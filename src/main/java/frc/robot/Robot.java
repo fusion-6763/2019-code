@@ -11,8 +11,10 @@ import edu.wpi.first.wpilibj.TimedRobot;
 
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.HatchIntake.HatchState;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
 
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.SPI;
@@ -20,6 +22,10 @@ import edu.wpi.first.cameraserver.*;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
+
+import edu.wpi.first.wpilibj.Compressor;
+
+import edu.wpi.first.networktables.NetworkTableEntry;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -30,14 +36,27 @@ import edu.wpi.first.wpilibj.DigitalInput;
  */
 public class Robot extends TimedRobot {
     //private final SendableChooser<String> m_chooser = new SendableChooser<>();
-    Joystick controller = new Joystick(0);
+    Joystick driver = new Joystick(0);
+    Joystick controller = new Joystick(1);
+
     AHRS navx = new AHRS(SPI.Port.kMXP);
+
     DifferentialDrive myRobot = new DifferentialDrive(new Spark(0), new Spark(2));
 
-    Elevator elevator = new Elevator(7, 8);
+    Elevator elevator = new Elevator(4, 6);
+    CargoIntake cargoIntake = new CargoIntake(9);
+    HatchIntake hatchIntake = new HatchIntake(0, 1);
 
     AnalogInput pixyAnalog = new AnalogInput(3);
     DigitalInput pixyDigital = new DigitalInput(0);
+
+    Compressor pressorOfCom = new Compressor();
+
+    HatchState hatchState = HatchState.IN;
+
+    double value;
+    double finalXSpeed;
+    double currentSpeed = 0.0;
 
     /**
      * This function is run when the robot is first started up and should be used
@@ -48,6 +67,8 @@ public class Robot extends TimedRobot {
         // SmartDashboard.putData("Drive choices", m_chooser);
         navx.reset();
         CameraServer.getInstance().startAutomaticCapture();
+
+        SmartDashboard.putBoolean("Hatch out?", false);
     }
 
     /**
@@ -62,6 +83,19 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         //System.out.println("Gyro Angle: " + navx.getAngle());
+        pressorOfCom.start();
+
+        double joystick = -driver.getY();
+        if(joystick > currentSpeed + 0.1 || joystick < currentSpeed - 0.1){
+            if(joystick < currentSpeed){
+                currentSpeed -= 0.1;
+            }
+            else{
+                currentSpeed += 0.1;
+            }
+            System.out.println("Apples of pines.");
+        }
+        System.out.println(currentSpeed);
     }
 
     /**
@@ -78,10 +112,10 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousInit() {
-
+        hatchState = HatchState.IN;
+        hatchIntake.set(hatchState);
     }
-    double value;
-    double finalXSpeed;
+    
     /**
      * This function is called periodically during autonomous.
      */
@@ -99,17 +133,53 @@ public class Robot extends TimedRobot {
         else if(pineapple > 0){
             finalXSpeed = pineapple + 0.4;
         }
-        if(controller.getRawButton(1)){
+        if(driver.getRawButton(1)){
             if(pixyDigital.get()){
-                myRobot.arcadeDrive(-controller.getY(), -finalXSpeed);
+                myRobot.arcadeDrive(-driver.getY(), -finalXSpeed);
             }
             else{
                 myRobot.tankDrive(0.0, 0.0);
             }
         }
         else{
-            myRobot.arcadeDrive(-controller.getY(), controller.getX());
+            myRobot.arcadeDrive(-driver.getRawAxis(5), driver.getRawAxis(4));
         }
+
+        // Elevator
+
+        elevator.set(-controller.getY());
+
+        // Cargo intake
+
+        if(controller.getRawButton(1)){
+            cargoIntake.outtake();
+        }
+        else if(controller.getRawButton(2)){
+            cargoIntake.intake();
+        }
+        else{
+            cargoIntake.normal();
+        }
+
+        // Hatch intake
+
+        if(controller.getRawButtonPressed(3) || controller.getRawButtonPressed(4)){
+            hatchState = hatchState == HatchState.IN ? HatchState.OUT : HatchState.IN;
+            hatchIntake.set(hatchState);
+            //System.out.println("Pressed");
+        }
+        /* if(controller.getRawButton(3) || controller.getRawButton(4)){
+            hatchState = HatchState.OUT;
+        }
+        else{
+            hatchState = HatchState.IN;
+        }
+        hatchIntake.set(hatchState); */
+
+        // Driver displays
+
+        System.out.println(hatchState);
+        SmartDashboard.putBoolean("Hatch out?", hatchState == HatchState.OUT ? true : false);
     }
 
     /**
@@ -117,9 +187,10 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void teleopInit() {
-
+        hatchState = HatchState.IN;
+        hatchIntake.set(hatchState);
     }
-
+    
     /**
      * This function is called periodically during operator control.
      */
@@ -137,17 +208,59 @@ public class Robot extends TimedRobot {
         else if(pineapple > 0){
             finalXSpeed = pineapple + 0.4;
         }
-        if(controller.getRawButton(1)){
+        if(driver.getRawButton(1)){
             if(pixyDigital.get()){
-                myRobot.arcadeDrive(-controller.getY(), -finalXSpeed);
+                myRobot.arcadeDrive(-driver.getY(), -finalXSpeed);
             }
             else{
                 myRobot.tankDrive(0.0, 0.0);
             }
         }
         else{
-            myRobot.arcadeDrive(-controller.getY(), controller.getX());
+            //myRobot.arcadeDrive(-driver.getRawAxis(5), driver.getRawAxis(4));
         }
+
+        // Elevator
+
+        elevator.set(-controller.getY());
+
+        // Cargo intake
+
+        if(controller.getRawButton(1)){
+            cargoIntake.outtake();
+        }
+        else if(controller.getRawButton(2)){
+            cargoIntake.intake();
+        }
+        else{
+            cargoIntake.normal();
+        }
+
+        // Hatch intake
+
+        if(controller.getRawButtonPressed(3) || controller.getRawButtonPressed(4)){
+            hatchState = hatchState == HatchState.IN ? HatchState.OUT : HatchState.IN;
+            hatchIntake.set(hatchState);
+            //System.out.println("Pressed");
+        }
+        /* if(controller.getRawButton(3) || controller.getRawButton(4)){
+            hatchState = HatchState.OUT;
+        }
+        else{
+            hatchState = HatchState.IN;
+        }
+        hatchIntake.set(hatchState); */
+
+        // Driver displays
+
+        System.out.println(hatchState);
+        SmartDashboard.putBoolean("Hatch out?", hatchState == HatchState.OUT ? true : false);
+
+        double joystick = driver.getY();
+        if(Math.abs(joystick) > Math.abs(currentSpeed)){
+            currentSpeed += joystick < currentSpeed ? -0.1 : 0.1;
+        }
+        System.out.println(currentSpeed);
     }
 
     /**
